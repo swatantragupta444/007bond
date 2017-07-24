@@ -1,0 +1,149 @@
+%% PROJECT 1: PRINCIPAL COMPONENT ANALYSIS
+% By Swatantra Gupta
+% Image Compression ECES 682
+clear all;
+close all;
+%% Read Band Images
+%image1= imread('PIA15260.jpg');
+% image1= imread('Sunimsal.jpg');
+% image1= imread('gravitational lensing.jpg');
+image1(:,:,1)= imread('1.tif');
+image1(:,:,2)= imread('2.tif');
+image1(:,:,3)= imread('3.tif');
+image1(:,:,4)= imread('4.tif');
+image1(:,:,5)= imread('5.tif');
+image1(:,:,6)= imread('6.tif');
+%% Plot the band components
+subplot(2,3,1);
+imshow(image1(:,:,1))
+title('B1 Component')
+subplot(2,3,2);
+imshow(image1(:,:,2))
+title('B2 Component')
+subplot(2,3,3);
+imshow(image1(:,:,3))
+title('B3 Component')
+if(size(image1,3)==6)
+subplot(2,3,4);
+imshow(image1(:,:,4))
+title('B4 Component')
+subplot(2,3,5);
+imshow(image1(:,:,5))
+title('B5 Component')
+subplot(2,3,6);
+imshow(image1(:,:,6))
+title('B6 Component')
+end
+%% 3D Column Vector x
+image(:,1) = image1(1,:,1);
+image(:,2) = image1(1,:,2);
+image(:,3) = image1(1,:,3);
+if(size(image1,3)==6)
+image(:,4) = image1(1,:,4);
+image(:,5) = image1(1,:,5);
+image(:,6) = image1(1,:,6);
+end
+for i=2:size(image1,1)
+im = image1(i,:,:);
+imtemp(:,:) = im(1,:,:);
+im = imtemp;
+image=[image; im];
+end
+x= image;
+clear imtemp image;
+%% Mean
+m=mean(x);
+M =repmat(m',1,length(x));
+%% Covariance Matrix
+c=cov(double(x));
+%% Eigen Vectors and Eigen Values
+[evc eic]=eig(c);
+[trash,I] = sort(sum(eic));
+evc = evc(:,I);
+%% Transformation Matrix
+A= evc';
+%% Trasformed PC
+y=A*(double(x)'-M);
+%% Image Principal Components
+j=1;
+k=1;
+for i=1:length(y)
+ytemp =y(:,i);
+pcim(k,j,:) = fliplr(ytemp');
+j=j+1;
+if(mod(i,size(image1,2))==0)
+j=1;
+k=k+1;
+end
+end
+clear ytemp;
+%% Plot Principal Components
+figure
+subplot(2,3,1);
+imshow(pcim(:,:,1),[-128,128])
+title('Principal Component 1 ')
+subplot(2,3,2);
+imshow(pcim(:,:,2),[-128,128])
+title('Principal component 2')
+subplot(2,3,3);
+imshow(pcim(:,:,3),[-128,128])
+title('Principal Component 3')
+if(size(image1,3)==6)
+subplot(2,3,4);
+imshow(pcim(:,:,4),[-128,128])
+title('Principal Component 4 ')
+subplot(2,3,5);
+imshow(pcim(:,:,5),[-128,128])
+title('Principal component 5')
+subplot(2,3,6);
+imshow(pcim(:,:,6),[-128,128])
+title('Principal Component 6')
+end
+%% Regenerate using only few Principal Components
+newA=A;
+newY=y;
+% Except for 1st and 2nd PC all others are made zero.
+newY(1,:) = zeros(1,length(y));
+newA(1,:) =zeros(1,length(A));
+newY(2,:) = zeros(1,length(y));
+newA(2,:) =zeros(1,length(A));
+if(size(image1,3)==6)
+newY(3,:) = zeros(1,length(y));
+newA(3,:) =zeros(1,length(A));
+newY(4,:) = zeros(1,length(y));
+newA(4,:) =zeros(1,length(A));
+end
+py = newA'*newY + M;
+j=1;
+k=1;
+for i=1:length(py)
+ytemp =py(:,i);
+pcoim(k,j,:) = ytemp;
+j=j+1;
+if(mod(i,size(image1,2))==0)
+j=1;
+k=k+1;
+end
+end
+%% Plot Reconstructed images using Principal Components
+figure
+subplot(2,3,1);
+imshow(uint8(pcoim(:,:,1)))
+title('Reconstructed B1')
+subplot(2,3,2);
+imshow(uint8(pcoim(:,:,2)))
+title('Reconstructed B2')
+subplot(2,3,3);
+imshow(uint8(pcoim(:,:,3)))
+title('Reconstructed B3')
+if(size(image1,3)==6)
+subplot(2,3,4);
+imshow(uint8(pcoim(:,:,4)))
+title('Reconstructed B4')
+subplot(2,3,5);
+imshow(uint8(pcoim(:,:,5)))
+title('Reconstructed B5')
+subplot(2,3,6);
+imshow(uint8(pcoim(:,:,6)))
+title('Reconstructed B6')
+end
